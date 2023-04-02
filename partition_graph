@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+#include <metis.h>
+
+int main(int argc, char \*argv[]) {
+// Read in the Google web dataset and create CSR arrays
+...
+
+    // Initialize Metis options and default values
+    idx_t ncon = 1;
+    idx_t nparts = omp_get_max_threads();
+    idx_t options[METIS_NOPTIONS];
+    METIS_SetDefaultOptions(options);
+
+    // Set the number of threads to use for Metis
+    omp_set_num_threads(nparts);
+
+    // Partition the graph using Metis
+    idx_t *part = (idx_t*)malloc(sizeof(idx_t) * n);
+    int ret = METIS_PartGraphKway(&n, &ncon, xadj, adjncy, NULL, NULL, NULL, &nparts, NULL, NULL, options, &objval, part);
+
+    // Compute PageRank for each partition in parallel
+    #pragma omp parallel for
+    for (int p = 0; p < nparts; p++) {
+        int start = partptr[p];
+        int end = partptr[p+1];
+        int nlocal = end - start;
+        double *pr_local = (double*)malloc(sizeof(double) * nlocal);
+
+        // Initialize PageRank vector for this partition
+        for (int i = 0; i < nlocal; i++) {
+            pr_local[i] = 1.0 / nlocal;
+        }
+
+        // Compute PageRank using power iteration
+        for (int iter = 0; iter < max_iters; iter++) {
+            double *pr_new_local = (double*)malloc(sizeof(double) * nlocal);
+            for (int i = 0; i < nlocal; i++) {
+                pr_new_local[i] = 0.0;
+            }
+
+            // Compute contributions from neighboring partitions
+            for (int q = 0; q < nparts; q++) {
+                if (p == q) continue;
+                int q_start = partptr[q];
+                int q_end = partptr[q+1];
+                double pr_q = pr[q];
+                for (int i = start; i < end; i++) {
+                    int j = adjncy[i];
+                    if (j >= q_start && j < q_end) {
+                        pr_new_local[j-start] += alpha * pr_q * adjwgt[i] / degree[j];
+                    }
+                }
+            }
+
+            // Compute contributions from within this partition
+            for (int i = start; i < end; i++) {
+                int j = adjncy[i];
+                if (j >= start && j < end) {
+                    pr_new_local[j-start] += alpha * pr_local[i-start] * adjwgt[i] / degree[j];
+                }
+            }
+
+            // Update PageRank for this partition
+            double norm = 0.0;
+            for (int i = 0; i < nlocal; i++) {
+                pr_new_local[i] = (1.0 - alpha) / nlocal + pr_new_local[i];
+                norm += pr_new_local[i];
+            }
+            for (int i = 0; i < nlocal; i++) {
+                pr_local[i] = pr_new_local[i] / norm;
+            }
+
+            free(pr_new_local);
+        }
+
+        // Copy local PageRank values back to global array
+        for (int i = start; i <
