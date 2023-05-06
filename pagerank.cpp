@@ -2,37 +2,41 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <Eigen/SparseLU>
+#include <cstdlib>
 
 using namespace std;
 using namespace Eigen;
 
-const double damping_factor = 0.85; 
-const double threshold = 1e-3;
-const int max_iterations = 1000;
+const double damping_factor = 0.95; // he so dan truyen
+const double threshold = 1e-3; // nguong hoi tu
+const int max_iterations = 1000; // so lan lap toi da
 
 vector<double> pagerank(const SparseMatrix<double>& links_matrix) {
-    int n = links_matrix.cols();
-    VectorXd pr(n);
-    pr.setOnes();
-    pr = pr / n;
+    int n = links_matrix.cols(); // so trang web
+    VectorXd pr(n); // vector ban dau
+    pr.setOnes(); // khoi tao gia tri 1 cho vector ban dau
+    pr = pr / n; // chuan hoa vector ban dau
 
-    SparseMatrix<double> A;
-    A = damping_factor * links_matrix.transpose();
+    SparseMatrix<double> A; // Khai bao ma tran A
+    A = damping_factor * links_matrix.transpose(); // Gan gia tri cho ma tran A
 
-    MatrixXd B = (1 - damping_factor) / n * MatrixXd::Ones(n, n);
-    SparseMatrix<double> C = B.sparseView();
+    //Tao ma tran xac dinh muc do phan phoi xac suat chuyen tiep giua cac trang web
+    MatrixXd B = (1 - damping_factor) / n * MatrixXd::Ones(n, n); 
+    SparseMatrix<double> C = B.sparseView(); //Tao ma tran thua C tu ma tran B
 
-    A += C;
-
-    BiCGSTAB<SparseMatrix<double>> solver(A);
-    solver.setTolerance(threshold);
+    A += C; // Them gia tri (1 - damping_factor) / n vao cac phan tu cua ma tran A
 
     for (int iter = 0; iter < max_iterations; iter++) {
-        VectorXd pr_new = solver.solve(pr);
-        double diff = (pr_new - pr).cwiseAbs().sum();
+        // tinh lai vector pagerank
+        VectorXd pr_new = A * pr;
+
+        // tính khoang cach Euclidean giua vector pagerank ban dau va vector pagerank dc tinh toan
+        double diff = (pr_new - pr).cwiseAbs().sum(); 
         if (diff < threshold) {
-            break;
+            break;  
         }
+        // neu chua hoi tu thi gan lai vector pr va tiep tuc
         pr = pr_new;
     }
 
@@ -44,10 +48,11 @@ vector<double> pagerank(const SparseMatrix<double>& links_matrix) {
 }
 
 int main() {
-    int n = 700;//web
-    int m = 1000000;// Số liên kết
+    int n = 3000; // Số trang web
+    int m = 10000; // Số lien ket
     vector<Triplet<double>> triplets;
 
+    //random data
     for (int i = 0; i < m; i++) {
         int from = rand() % n;
         int to = rand() % n;
@@ -55,7 +60,6 @@ int main() {
     }
 
     SparseMatrix<double> links_matrix(n, n);
-
     links_matrix.setFromTriplets(triplets.begin(), triplets.end());
 
     vector<double> pr = pagerank(links_matrix);
