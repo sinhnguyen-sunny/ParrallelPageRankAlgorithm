@@ -27,9 +27,14 @@ vector<double> pagerank(const SparseMatrix<double>& links_matrix) {
 
     A += C; // Them gia tri (1 - damping_factor) / n vao cac phan tu cua ma tran A
 
+    //Khoi tao solver de tinh lai vector pagerank moi
+    // BiCGSTAB<SparseMatrix<double>> solver(A);
+    // solver.setTolerance(threshold);
+
     for (int iter = 0; iter < max_iterations; iter++) {
         // tinh lai vector pagerank
         VectorXd pr_new = A * pr;
+        // VectorXd pr_new = solver.solve(pr); 
 
         // tính khoang cach Euclidean giua vector pagerank ban dau va vector pagerank dc tinh toan
         double diff = (pr_new - pr).cwiseAbs().sum(); 
@@ -48,8 +53,8 @@ vector<double> pagerank(const SparseMatrix<double>& links_matrix) {
 }
 
 int main() {
-    int n = 3000; // Số trang web
-    int m = 10000; // Số lien ket
+    int n = 1000; // Số trang web
+    int m = 1000; // Số lien ket
     vector<Triplet<double>> triplets;
 
     //random data
