@@ -53,8 +53,8 @@ vector<double> pagerank(const SparseMatrix<double>& links_matrix) {
 }
 
 int main() {
-    int n = 1000; // Số trang web
-    int m = 1000; // Số lien ket
+    int n = 5000; // Số trang web
+    int m = 5000; // Số lien ket
     vector<Triplet<double>> triplets;
 
     //random data
