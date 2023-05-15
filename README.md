@@ -2,18 +2,22 @@
 
 ## Alogrithms:
 
-    .https://docs.google.com/presentation/d/1NwhEI3SX1bi2esqgvTDS6Oaywb2_tXpbr0lyePAbMRY/edit#slide=id.g21039aed30c_0_7
+    * [pagerank_group_slide_link](https://docs.google.com/presentation/d/1NwhEI3SX1bi2esqgvTDS6Oaywb2_tXpbr0lyePAbMRY/edit#slide=id.g21039aed30c_0_7)
 
-## For share-memory parrallel pageRank algorithm
+## For serial small graph
 
-- 1.Install the required software: You will need to install the Metis library and OpenMP if they are not already installed on both laptops.
+1. Install g++ by command: "sudo apt-get install g++"
+2. Download the Eigen 3.3.9 source code from the official website: https://eigen.tuxfamily.org/index.php?title=Main_Page#Download
+3. Build and install Eigen
+4. cd to the folder "serial_small_graph"
+5. Run "g++ -I eigen-3.3.9 pagerank.cpp -o pagerank"
 
-- 2.Download the Google web graph dataset: You can download the dataset from the Google Web Graph page. Make sure you download the appropriate version for your needs.
+## For serial big graph
 
-- 4.Partition the graph using Metis: Use the Metis library to partition the graph into smaller subgraphs. You can use the code provided above as a starting point.
+1. cd to the folder "serial_big_graph"
+2. Run "gcc -o pagerank serial_page_rank.c -lm" then run "./pagerank > ./output.txt"
 
-- 5.Transfer data: Transfer the partitioned subgraphs and any other necessary data between the two laptops.
+## For paralel
 
-- 6.Run the code: Run the optimized code on each laptop using the partitioned subgraph data.
-
-- 7.Combine the results: Combine the results from each laptop to get the final PageRank values for the entire graph.
+1. cd to the folder "parallel"
+2. Run "g++ -fopenmp page_rank_parallel.cpp -o pagerank" then run "./pagerank > ./output.txt"
