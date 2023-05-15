@@ -17,7 +17,7 @@
 1. cd to the folder "serial_big_graph"
 2. Run "gcc -o pagerank serial_page_rank.c -lm" then run "./pagerank > ./output.txt"
 
-## For paralel
+## For paralell
 
 1. cd to the folder "parallel"
 2. Run "g++ -fopenmp page_rank_parallel.cpp -o pagerank" then run "./pagerank > ./output.txt"
